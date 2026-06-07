@@ -221,17 +221,6 @@
   .np-label::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 0 rgba(230,169,44,.6);animation:pulse 2s infinite}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(230,169,44,.5)}70%{box-shadow:0 0 0 9px rgba(230,169,44,0)}100%{box-shadow:0 0 0 0 rgba(230,169,44,0)}}
   .np iframe{border-radius:12px;display:block;width:100%}
-  .rock-continue{
-    margin:0 0 14px;
-    border:1px solid rgba(230,169,44,.45);
-    background:rgba(230,169,44,.1);
-    color:var(--cream);
-    padding:12px 16px;
-    width:100%;
-    text-align:center;
-    cursor:pointer;
-  }
-  .rock-continue:hover{background:rgba(230,169,44,.18)}
   /* B-side live performance */
   .live{border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:6vw;align-items:center}
   .live .live-photo{position:relative;overflow:hidden;border:1px solid var(--line)}
@@ -390,7 +379,7 @@
     <div class="mk">MI<em>Y</em>U</div>
     <div class="tg">Soul was never like this.</div>
     <div class="enter"><span class="dot"></span> Müziği başlatmak için dokun</div>
-    <div class="hint">Mitski ile açılış · sonra Rock Classics</div>
+    <div class="hint">Mitski ile açılış · sonra gitarlı seçki</div>
   </div>
 </div>
 
@@ -764,11 +753,11 @@
   <div class="text reveal">
     <div class="eyebrow mono">Now Spinning · 33⅓</div>
     <h2>33⅓ devirde, <em>her gün</em>.</h2>
-    <p>Kırmızı pikabın yanı Miyu'nun değişmez tahtı. İğne plağa düştüğünde gözlerini kapatır, kürkü ritimle inip kalkar. Bu gece döner tablada: Ay'a sevgisini emanet eden bir şarkı — tıpkı Miyu'nun 🌝 altın gözleri gibi.</p>
+    <p>Kırmızı pikabın yanı Miyu'nun değişmez tahtı. İğne plağa düştüğünde gözlerini kapatır, kürkü ritimle inip kalkar. Açılışta Mitski başlar; sonra akış tek oynatıcı içinde gitarları yükselten bir seçkiye kendiliğinden devam eder.</p>
     <div class="np">
-      <div class="np-label mono">A-Side · Yıldızın parçası</div>
-      <div id="aside-player-shell"><div id="aside-player"></div></div>
-      <div class="np-hint mono">ilk çalar · bitince Rock Classics devralır</div>
+      <div class="np-label mono">A-Side · Açılış ve devam</div>
+      <div id="aside-player"></div>
+      <div class="np-hint mono">Mitski ile başlar · tek oynatıcıda devam eder</div>
     </div>
   </div>
   <div class="player reveal">
@@ -799,16 +788,13 @@
   <div class="head reveal">
     <div class="eyebrow mono" style="justify-content:center">Kulis · Menajerin Kulaklığı</div>
     <h2>Yıldız soul söyler, <em>menajer metal dinler</em>.</h2>
-    <p>Sahnede Miyu'nun kadifemsi soul'u var; ama bu evde sözü menajeri (annesi) söyler ve onun kulaklığında gitarlar sonuna kadar açık. Önce Miyu'nun A-Side'ı açılır; parça bittiğinde sıra doğrudan <em>Rock Classics</em>'e geçer. İstediğin an aşağıdaki oynatıcıdan durdurabilir, Metal Essentials ve A-Side için ▶ tuşuna basabilirsin.</p>
+    <p>Sahnede Miyu'nun kadifemsi soul'u var; ama bu evde sözü menajeri (annesi) söyler ve onun kulaklığında gitarlar sonuna kadar açık. Kesintisiz devam için üstte tek bir açılış seçkisi kullanıyoruz; aşağıda ise resmi <em>Rock Classics</em> ve <em>Metal Essentials</em> listeleri ayrıca duruyor.</p>
   </div>
   <div class="lists reveal">
     <div class="np">
       <div class="np-label mono">Menajerin Listesi · Rock Classics</div>
-      <button id="rock-continue" class="rock-continue mono" type="button" hidden>Rock Classics baslamadiysa buraya dokun</button>
-      <div id="rock-player-shell">
-        <iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DWXRqgorJj26U?utm_source=generator&theme=0" width="100%" height="380" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Rock Classics"></iframe>
-      </div>
-      <div class="np-hint mono">A-Side bittiğinde otomatik devralır · durdurmak senin elinde</div>
+      <iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DWXRqgorJj26U?utm_source=generator&theme=0" width="100%" height="380" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Rock Classics"></iframe>
+      <div class="np-hint mono">resmi liste · istediğin an ayrıca aç</div>
     </div>
     <div class="np">
       <div class="np-label mono">Menajerin Listesi · Metal Essentials</div>
@@ -887,125 +873,31 @@
   },{threshold:.12});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-  // --- intro splash; on enter, start with A-side and hand off to Rock Classics ---
-  const A_SIDE_URI='spotify:track:3vkCueOmm7xQDoJ17W1Pm3';
-  const ROCK_URI='spotify:playlist:37i9dQZF1DWXRqgorJj26U';
-  const A_SIDE_FALLBACK_MS=145000;
-  let miyuCtrl=null, wantPlay=false, handoffDone=false, handoffTimer=null, rockPromptTimer=null;
-  let asideState={started:false, position:0, duration:0};
-  function hideRockPrompt(){
-    const btn=document.getElementById('rock-continue');
-    if(btn) btn.hidden=true;
-    if(rockPromptTimer){
-      clearTimeout(rockPromptTimer);
-      rockPromptTimer=null;
-    }
-  }
-  function showRockPrompt(){
-    const btn=document.getElementById('rock-continue');
-    if(btn && document.body.dataset.queueState!=='rock-playing') btn.hidden=false;
-  }
-  function clearHandoffTimer(){
-    if(handoffTimer){
-      clearTimeout(handoffTimer);
-      handoffTimer=null;
-    }
-  }
-  function scheduleHandoff(position,duration){
-    if(handoffDone || !duration || duration<=0) return;
-    clearHandoffTimer();
-    const remaining=Math.max(0,duration-position);
-    handoffTimer=setTimeout(handoffToRock, remaining+300);
-  }
-  function moveActivePlayerToRock(){
-    const asideShell=document.getElementById('aside-player-shell');
-    const rockShell=document.getElementById('rock-player-shell');
-    const liveIframe=asideShell ? asideShell.querySelector('iframe') : null;
-    if(!asideShell || !rockShell || !liveIframe || rockShell.contains(liveIframe)) return;
-    rockShell.replaceChildren(liveIframe);
-  }
-  function startAside(){
+  // --- intro splash; on enter, start a single playlist so playback continues natively ---
+  const MAIN_URI='spotify:playlist:3praMF7vWrn2esLaWnxDfJ';
+  let miyuCtrl=null, wantPlay=false;
+  function startMainPlaylist(){
     if(miyuCtrl){
-      document.body.dataset.queueState='aside';
-      hideRockPrompt();
-      clearHandoffTimer();
-      handoffTimer=setTimeout(handoffToRock, A_SIDE_FALLBACK_MS);
-      try{miyuCtrl.loadUri(A_SIDE_URI);}catch(e){}
+      try{miyuCtrl.loadUri(MAIN_URI);}catch(e){}
       try{miyuCtrl.play();}catch(e){}
       try{miyuCtrl.resume();}catch(e){}
     }
-  }
-  function handoffToRock(){
-    if(handoffDone || !miyuCtrl) return;
-    handoffDone=true;
-    document.body.dataset.queueState='rock-requested';
-    clearHandoffTimer();
-    moveActivePlayerToRock();
-    try{miyuCtrl.loadUri(ROCK_URI);}catch(e){}
-    rockPromptTimer=setTimeout(showRockPrompt, 2200);
-    setTimeout(()=>{
-      try{miyuCtrl.play();}catch(e){}
-      try{miyuCtrl.resume();}catch(e){}
-    },350);
   }
   window.onSpotifyIframeApiReady=(IFrameAPI)=>{
     const a=document.getElementById('aside-player');
     if(a){
-      IFrameAPI.createController(a,{uri:A_SIDE_URI,width:'100%',height:152},(ctrl)=>{
+      IFrameAPI.createController(a,{uri:MAIN_URI,width:'100%',height:380},(ctrl)=>{
         miyuCtrl=ctrl;
-        ctrl.addListener('playback_started',()=>{
-          if(handoffDone){
-            document.body.dataset.queueState='rock-playing';
-            hideRockPrompt();
-          }else{
-            asideState.started=true;
-            document.body.dataset.queueState='aside-playing';
-          }
-        });
-        ctrl.addListener('playback_update',(e)=>{
-          const data=e&&e.data?e.data:{};
-          const prevPosition=asideState.position;
-          const prevDuration=asideState.duration;
-          const position=Number(data.position)||0;
-          const duration=Number(data.duration)||0;
-          const nearEndNow=duration>0 && position>=Math.max(duration-2500, duration*0.97);
-          const nearEndBeforeReset=prevDuration>0 && prevPosition>=Math.max(prevDuration-2500, prevDuration*0.97);
-          if(position>0 && !data.isPaused) asideState.started=true;
-          if(!data.isPaused && duration>0){
-            scheduleHandoff(position,duration);
-          }else if(data.isPaused && !nearEndNow){
-            document.body.dataset.queueState='paused';
-            clearHandoffTimer();
-          }
-          if(!handoffDone && asideState.started && ((data.isPaused && nearEndNow) || (data.isPaused && position===0 && nearEndBeforeReset))){
-            handoffToRock();
-          }
-          asideState.position=position;
-          if(duration>0) asideState.duration=duration;
-        });
-        if(wantPlay) startAside();
+        if(wantPlay) startMainPlaylist();
       });
     }
   };
   function enterSite(){
     wantPlay=true;
-    startAside();
+    startMainPlaylist();
     const o=document.getElementById('intro');
     if(o){ o.classList.add('gone'); setTimeout(()=>{ if(o&&o.parentNode) o.parentNode.removeChild(o); },900); }
   }
-  document.getElementById('rock-continue')?.addEventListener('click',()=>{
-    if(!handoffDone) handoffToRock();
-    document.body.dataset.queueState='rock-requested';
-    hideRockPrompt();
-    if(miyuCtrl){
-      moveActivePlayerToRock();
-      try{miyuCtrl.loadUri(ROCK_URI);}catch(e){}
-      setTimeout(()=>{
-        try{miyuCtrl.play();}catch(e){}
-        try{miyuCtrl.resume();}catch(e){}
-      },120);
-    }
-  });
 </script>
 <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
 </body>
