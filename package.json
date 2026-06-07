@@ -1,0 +1,11 @@
+{
+  "name": "miyu-karakedigil",
+  "version": "1.0.0",
+  "description": "Miyu - vintage soul kara kedi tribute sitesi",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
