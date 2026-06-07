@@ -195,12 +195,19 @@
 
   /* ---------- NOW SPINNING ---------- */
   .spinning{
+    padding-top:18vh;
     border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
     display:grid;grid-template-columns:1fr 1fr;gap:6vw;align-items:center;
+    background:
+      radial-gradient(90% 140% at 10% 0%, rgba(230,169,44,.08), transparent 55%),
+      linear-gradient(180deg, rgba(22,17,11,.94), rgba(13,10,7,.98));
   }
   .spinning .text h2{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(2.2rem,5vw,3.6rem);line-height:1;margin-bottom:22px}
   .spinning .text h2 em{font-style:italic;color:var(--gold);font-weight:400}
   .spinning .text p{color:var(--cream-dim);font-size:1.12rem;max-width:42ch}
+  .spinning .status{margin-top:14px;color:var(--cream);font-size:.98rem}
+  .spinning .status b{color:var(--gold);font-family:'Space Mono',monospace;font-size:.74rem;letter-spacing:.12em;text-transform:uppercase}
   .player{position:relative}
   .player img{width:100%;display:block;border:1px solid var(--line);filter:contrast(1.05) saturate(1.06)}
   .vinyl{
@@ -241,21 +248,6 @@
   .stats .lbl{font-family:'Space Mono',monospace;font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--cream);margin-top:16px}
   .stats .sub{font-family:'EB Garamond',serif;font-style:italic;font-size:.9rem;color:var(--cream-dim);margin-top:6px}
   @media(max-width:760px){.stats{grid-template-columns:1fr}.stats .stat{border-right:none;border-bottom:1px solid var(--line);padding:6vh 2vw}.stats .stat:last-child{border-bottom:none}}
-  /* ---------- INTRO SPLASH ---------- */
-  #intro{position:fixed;inset:0;z-index:1000;background:radial-gradient(circle at 50% 38%, #1d1610 0%, var(--ink) 70%);display:grid;place-items:center;text-align:center;cursor:pointer;transition:opacity .8s ease}
-  #intro.gone{opacity:0;pointer-events:none}
-  #intro .in{padding:6vw;position:relative;z-index:2}
-  #intro .mk{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(4rem,15vw,9.5rem);line-height:.88;letter-spacing:.01em}
-  #intro .mk em{font-style:italic;color:var(--gold)}
-  #intro .tg{font-family:'EB Garamond',serif;font-style:italic;color:var(--cream-dim);font-size:clamp(1rem,2.5vw,1.25rem);margin-top:8px}
-  #intro .enter{margin-top:36px;display:inline-flex;align-items:center;gap:12px;font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;color:var(--ink);background:var(--gold);padding:16px 30px;transition:transform .3s}
-  #intro:hover .enter{transform:translateY(-2px)}
-  #intro[data-ready="false"]{cursor:progress}
-  #intro[data-ready="false"] .enter{opacity:.55}
-  #intro[data-ready="false"]:hover .enter{transform:none}
-  #intro .enter .dot{width:9px;height:9px;border-radius:50%;background:var(--ink);animation:pulse2 1.5s infinite}
-  @keyframes pulse2{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:.35}}
-  #intro .hint{margin-top:18px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.2em;color:var(--cream-dim);text-transform:uppercase}
   /* ---------- BACKSTAGE (metal/rock) ---------- */
   .backstage{border-top:1px solid var(--line)}
   .backstage .head{text-align:center;max-width:62ch;margin:0 auto 42px}
@@ -376,16 +368,6 @@
 </style>
 </head>
 <body>
-<!-- INTRO SPLASH -->
-<div id="intro" data-ready="false" onclick="enterSite()">
-  <div class="in">
-    <div class="mk">MI<em>Y</em>U</div>
-    <div class="tg">Soul was never like this.</div>
-    <div class="enter"><span class="dot"></span> Rock Classics yukleniyor</div>
-    <div class="hint">oynatici hazir olunca dokun ve bastan baslat</div>
-  </div>
-</div>
-
 <nav>
   <div class="brand">MIYU</div>
   <div class="links">
@@ -400,6 +382,24 @@
   </div>
   <div class="mono">EST. ∞</div>
 </nav>
+
+<!-- NOW SPINNING -->
+<section id="spinning" class="spinning">
+  <div class="text reveal">
+    <div class="eyebrow mono">Spotify En Basta</div>
+    <h2>Ilk ekranda <em>Rock Classics</em>.</h2>
+    <p>Acilis katmanini kaldirdik. Site acilir acilmaz resmi Spotify oynaticisi en basta duruyor; direkt oynaticidaki <em>play</em> tusuna basip listedeki parcalari ilk sarkidan itibaren devam ettirebilirsin.</p>
+    <div class="np">
+      <div class="np-label mono">Menajerin Listesi · Rock Classics</div>
+      <iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DWXRqgorJj26U?utm_source=generator&theme=0" width="100%" height="380" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Rock Classics"></iframe>
+      <div class="status"><b>Hazir:</b> Spotify icindeki ▶ tusuna bas, liste en bastan aksin.</div>
+    </div>
+  </div>
+  <div class="player reveal">
+    <img src="img/vinyl.jpg" alt="Miyu kirmizi Mikado pikabin yaninda">
+    <div class="vinyl" aria-hidden="true"></div>
+  </div>
+</section>
 
 <!-- HERO -->
 <header class="hero">
@@ -751,24 +751,6 @@
   </div>
 </section>
 
-<!-- NOW SPINNING -->
-<section id="spinning" class="spinning">
-  <div class="text reveal">
-    <div class="eyebrow mono">Now Spinning · 33⅓</div>
-    <h2>33⅓ devirde, <em>her gün</em>.</h2>
-    <p>Kırmızı pikabın yanı Miyu'nun değişmez tahtı. İğne plağa düştüğünde gözlerini kapatır, kürkü ritimle inip kalkar. Açılışta doğrudan Rock Classics başlar ve liste ilk parçadan itibaren kendi akışında devam eder.</p>
-    <div class="np">
-      <div class="np-label mono">A-Side · Rock Classics</div>
-      <div id="aside-player"></div>
-      <div class="np-hint mono">ilk parça: Blitzkrieg Bop · sonra liste devam eder</div>
-    </div>
-  </div>
-  <div class="player reveal">
-    <img src="img/vinyl.jpg" alt="Miyu kırmızı Mikado pikabın yanında">
-    <div class="vinyl" aria-hidden="true"></div>
-  </div>
-</section>
-
 <!-- B-SIDE / CANLI -->
 <section class="live">
   <div class="live-photo reveal">
@@ -791,7 +773,7 @@
   <div class="head reveal">
     <div class="eyebrow mono" style="justify-content:center">Kulis · Menajerin Kulaklığı</div>
     <h2>Yıldız soul söyler, <em>menajer metal dinler</em>.</h2>
-    <p>Sahnede Miyu'nun kadifemsi soul'u var; ama bu evde sözü menajeri (annesi) söyler ve onun kulaklığında gitarlar sonuna kadar açık. Bu yüzden açılışta doğrudan resmi <em>Rock Classics</em> başlıyor. Aşağıda aynı resmi liste ve <em>Metal Essentials</em> ayrıca duruyor.</p>
+    <p>Sahnede Miyu'nun kadifemsi soul'u var; ama bu evde sözü menajeri (annesi) söyler ve onun kulaklığında gitarlar sonuna kadar açık. Bu yüzden resmi <em>Rock Classics</em> oynatıcısını sayfanın en başına aldık. Aşağıda aynı listeyi tekrar açabilir ya da <em>Metal Essentials</em>e geçebilirsin.</p>
   </div>
   <div class="lists reveal">
     <div class="np">
@@ -875,81 +857,6 @@
     });
   },{threshold:.12});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-
-  // --- intro splash; on enter, start Rock Classics from the top ---
-  const ROCK_URI='spotify:playlist:37i9dQZF1DWXRqgorJj26U';
-  const ROCK_FIRST_TRACK_URI='spotify:track:3fi31nZ4m3PSLNxygpjQ3Z';
-  let miyuCtrl=null, wantPlay=false, restartPending=false, controllerReady=false;
-  function setIntroReady(ready){
-    const intro=document.getElementById('intro');
-    const enter=intro ? intro.querySelector('.enter') : null;
-    const hint=intro ? intro.querySelector('.hint') : null;
-    if(intro) intro.dataset.ready = ready ? 'true' : 'false';
-    if(enter) enter.innerHTML = ready
-      ? '<span class="dot"></span> Rock Classics\'i calmak icin dokun'
-      : '<span class="dot"></span> Rock Classics yukleniyor';
-    if(hint) hint.textContent = ready
-      ? 'ilk parca Blitzkrieg Bop · sonra liste devam eder'
-      : 'oynatici hazir olunca dokun ve bastan baslat';
-  }
-  function startMainPlaylist(){
-    if(miyuCtrl){
-      document.body.dataset.playerMode='rock-classics';
-      document.body.dataset.playerState='requested';
-      restartPending=true;
-      try{miyuCtrl.loadUri(ROCK_URI);}catch(e){}
-      try{miyuCtrl.play();}catch(e){}
-      try{miyuCtrl.resume();}catch(e){}
-      setTimeout(()=>{
-        if(restartPending){
-          try{miyuCtrl.restart();}catch(e){}
-        }
-      },500);
-    }
-  }
-  window.onSpotifyIframeApiReady=(IFrameAPI)=>{
-    const a=document.getElementById('aside-player');
-    if(a){
-      IFrameAPI.createController(a,{uri:ROCK_URI,width:'100%',height:380},(ctrl)=>{
-        miyuCtrl=ctrl;
-        controllerReady=true;
-        document.body.dataset.playerReady='controller';
-        setIntroReady(true);
-        ctrl.addListener('ready',()=>{
-          controllerReady=true;
-          document.body.dataset.playerReady='true';
-          setIntroReady(true);
-        });
-        ctrl.addListener('playback_started',(e)=>{
-          const playingURI=e && e.data ? e.data.playingURI : '';
-          document.body.dataset.playingUri=playingURI || '';
-          document.body.dataset.playerState='playing';
-          if(restartPending){
-            restartPending=false;
-            if(playingURI && playingURI !== ROCK_FIRST_TRACK_URI){
-              try{ctrl.restart();}catch(err){}
-            }
-          }
-        });
-        ctrl.addListener('playback_update',(e)=>{
-          const data=e && e.data ? e.data : {};
-          document.body.dataset.playerPaused = data.isPaused ? 'true' : 'false';
-        });
-        if(wantPlay) startMainPlaylist();
-      });
-    }
-  };
-  function enterSite(){
-    if(!controllerReady){
-      document.body.dataset.playerReady='false';
-      return;
-    }
-    wantPlay=true;
-    startMainPlaylist();
-    const o=document.getElementById('intro');
-    if(o){ o.classList.add('gone'); setTimeout(()=>{ if(o&&o.parentNode) o.parentNode.removeChild(o); },900); }
-  }
 </script>
-<script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
 </body>
 </html>
