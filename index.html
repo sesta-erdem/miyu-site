@@ -378,8 +378,8 @@
   <div class="in">
     <div class="mk">MI<em>Y</em>U</div>
     <div class="tg">Soul was never like this.</div>
-    <div class="enter"><span class="dot"></span> Plağı çalmak için dokun</div>
-    <div class="hint">Mitski · My Love Mine All Mine</div>
+    <div class="enter"><span class="dot"></span> Müziği başlatmak için dokun</div>
+    <div class="hint">Menajerin seçkisi · Rock Classics</div>
   </div>
 </div>
 
@@ -755,8 +755,9 @@
     <h2>33⅓ devirde, <em>her gün</em>.</h2>
     <p>Kırmızı pikabın yanı Miyu'nun değişmez tahtı. İğne plağa düştüğünde gözlerini kapatır, kürkü ritimle inip kalkar. Bu gece döner tablada: Ay'a sevgisini emanet eden bir şarkı — tıpkı Miyu'nun 🌝 altın gözleri gibi.</p>
     <div class="np">
-      <div class="np-label mono">A-Side · Şu an çalan</div>
+      <div class="np-label mono">A-Side · Yıldızın parçası</div>
       <div id="aside-player"></div>
+      <div class="np-hint mono">çalmak için ▶ tuşuna bas</div>
     </div>
   </div>
   <div class="player reveal">
@@ -787,12 +788,13 @@
   <div class="head reveal">
     <div class="eyebrow mono" style="justify-content:center">Kulis · Menajerin Kulaklığı</div>
     <h2>Yıldız soul söyler, <em>menajer metal dinler</em>.</h2>
-    <p>Sahnede Miyu'nun kadifemsi soul'u var; ama kuliste, annesinin (menajerinin) kulaklığında gitarlar sonuna kadar açık. İşte onun seçkisi — rock & metal. ▶ tuşuna bas, sesi aç.</p>
+    <p>Sahnede Miyu'nun kadifemsi soul'u var; ama bu evde sözü menajeri (annesi) söyler ve onun kulaklığında gitarlar sonuna kadar açık. Bu yüzden site açılır açılmaz doğrudan <em>Rock Classics</em> çalmaya başlar — istediğin an aşağıdaki oynatıcıdan durdurabilirsin. Metal Essentials ve A-Side için ▶ tuşuna bas.</p>
   </div>
   <div class="lists reveal">
     <div class="np">
       <div class="np-label mono">Menajerin Listesi · Rock Classics</div>
-      <iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DWXRqgorJj26U?utm_source=generator&theme=0" width="100%" height="380" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Rock Classics"></iframe>
+      <div id="rock-player"></div>
+      <div class="np-hint mono">açılışta otomatik başlar · durdurmak senin elinde</div>
     </div>
     <div class="np">
       <div class="np-label mono">Menajerin Listesi · Metal Essentials</div>
@@ -871,19 +873,24 @@
   },{threshold:.12});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-  // --- intro splash + autoplay-on-enter (Spotify IFrame API) ---
-  let miyuCtrl=null, wantPlay=false;
+  // --- intro splash; on enter, start directly with Rock Classics (Spotify IFrame API) ---
+  let miyuCtrl=null, rockCtrl=null, wantPlay=false;
   window.onSpotifyIframeApiReady=(IFrameAPI)=>{
-    const el=document.getElementById('aside-player');
-    if(!el) return;
-    IFrameAPI.createController(el,{uri:'spotify:track:3vkCueOmm7xQDoJ17W1Pm3',width:'100%',height:152},(ctrl)=>{
-      miyuCtrl=ctrl;
-      if(wantPlay){ try{ctrl.play();}catch(e){} }
-    });
+    const a=document.getElementById('aside-player');
+    if(a){
+      IFrameAPI.createController(a,{uri:'spotify:track:3vkCueOmm7xQDoJ17W1Pm3',width:'100%',height:152},(ctrl)=>{ miyuCtrl=ctrl; });
+    }
+    const r=document.getElementById('rock-player');
+    if(r){
+      IFrameAPI.createController(r,{uri:'spotify:playlist:37i9dQZF1DWXRqgorJj26U',width:'100%',height:380},(ctrl)=>{
+        rockCtrl=ctrl;
+        if(wantPlay){ try{ctrl.play();}catch(e){} }
+      });
+    }
   };
   function enterSite(){
     wantPlay=true;
-    if(miyuCtrl){ try{miyuCtrl.play();}catch(e){} }
+    if(rockCtrl){ try{rockCtrl.play();}catch(e){} }
     const o=document.getElementById('intro');
     if(o){ o.classList.add('gone'); setTimeout(()=>{ if(o&&o.parentNode) o.parentNode.removeChild(o); },900); }
   }
