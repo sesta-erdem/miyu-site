@@ -379,7 +379,7 @@
     <div class="mk">MI<em>Y</em>U</div>
     <div class="tg">Soul was never like this.</div>
     <div class="enter"><span class="dot"></span> Müziği başlatmak için dokun</div>
-    <div class="hint">Menajerin seçkisi · Rock Classics</div>
+    <div class="hint">Mitski ile açılış · sonra Rock Classics</div>
   </div>
 </div>
 
@@ -757,7 +757,7 @@
     <div class="np">
       <div class="np-label mono">A-Side · Yıldızın parçası</div>
       <div id="aside-player"></div>
-      <div class="np-hint mono">çalmak için ▶ tuşuna bas</div>
+      <div class="np-hint mono">ilk çalar · bitince Rock Classics devralır</div>
     </div>
   </div>
   <div class="player reveal">
@@ -788,13 +788,13 @@
   <div class="head reveal">
     <div class="eyebrow mono" style="justify-content:center">Kulis · Menajerin Kulaklığı</div>
     <h2>Yıldız soul söyler, <em>menajer metal dinler</em>.</h2>
-    <p>Sahnede Miyu'nun kadifemsi soul'u var; ama bu evde sözü menajeri (annesi) söyler ve onun kulaklığında gitarlar sonuna kadar açık. Bu yüzden site açılır açılmaz doğrudan <em>Rock Classics</em> çalmaya başlar — istediğin an aşağıdaki oynatıcıdan durdurabilirsin. Metal Essentials ve A-Side için ▶ tuşuna bas.</p>
+    <p>Sahnede Miyu'nun kadifemsi soul'u var; ama bu evde sözü menajeri (annesi) söyler ve onun kulaklığında gitarlar sonuna kadar açık. Önce Miyu'nun A-Side'ı açılır; parça bittiğinde sıra doğrudan <em>Rock Classics</em>'e geçer. İstediğin an aşağıdaki oynatıcıdan durdurabilir, Metal Essentials ve A-Side için ▶ tuşuna basabilirsin.</p>
   </div>
   <div class="lists reveal">
     <div class="np">
       <div class="np-label mono">Menajerin Listesi · Rock Classics</div>
       <div id="rock-player"></div>
-      <div class="np-hint mono">açılışta otomatik başlar · durdurmak senin elinde</div>
+      <div class="np-hint mono">A-Side bittiğinde otomatik devralır · durdurmak senin elinde</div>
     </div>
     <div class="np">
       <div class="np-label mono">Menajerin Listesi · Metal Essentials</div>
@@ -873,24 +873,62 @@
   },{threshold:.12});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-  // --- intro splash; on enter, start directly with Rock Classics (Spotify IFrame API) ---
-  let miyuCtrl=null, rockCtrl=null, wantPlay=false;
+  // --- intro splash; on enter, start with A-side and hand off to Rock Classics ---
+  let miyuCtrl=null, rockCtrl=null, wantPlay=false, wantRockHandoff=false, handoffDone=false;
+  let asideState={started:false, position:0, duration:0};
+  function startAside(){
+    if(miyuCtrl){
+      try{miyuCtrl.play();}catch(e){}
+    }
+  }
+  function handoffToRock(){
+    if(handoffDone) return;
+    handoffDone=true;
+    wantRockHandoff=true;
+    if(miyuCtrl){
+      try{miyuCtrl.pause();}catch(e){}
+    }
+    if(rockCtrl){
+      try{rockCtrl.play();}catch(e){}
+    }
+  }
   window.onSpotifyIframeApiReady=(IFrameAPI)=>{
     const a=document.getElementById('aside-player');
     if(a){
-      IFrameAPI.createController(a,{uri:'spotify:track:3vkCueOmm7xQDoJ17W1Pm3',width:'100%',height:152},(ctrl)=>{ miyuCtrl=ctrl; });
+      IFrameAPI.createController(a,{uri:'spotify:track:3vkCueOmm7xQDoJ17W1Pm3',width:'100%',height:152},(ctrl)=>{
+        miyuCtrl=ctrl;
+        ctrl.addListener('playback_started',()=>{
+          asideState.started=true;
+        });
+        ctrl.addListener('playback_update',(e)=>{
+          const data=e&&e.data?e.data:{};
+          const prevPosition=asideState.position;
+          const prevDuration=asideState.duration;
+          const position=Number(data.position)||0;
+          const duration=Number(data.duration)||0;
+          const nearEndNow=duration>0 && position>=Math.max(duration-2500, duration*0.97);
+          const nearEndBeforeReset=prevDuration>0 && prevPosition>=Math.max(prevDuration-2500, prevDuration*0.97);
+          if(position>0 && !data.isPaused) asideState.started=true;
+          if(!handoffDone && asideState.started && ((data.isPaused && nearEndNow) || (data.isPaused && position===0 && nearEndBeforeReset))){
+            handoffToRock();
+          }
+          asideState.position=position;
+          if(duration>0) asideState.duration=duration;
+        });
+        if(wantPlay) startAside();
+      });
     }
     const r=document.getElementById('rock-player');
     if(r){
       IFrameAPI.createController(r,{uri:'spotify:playlist:37i9dQZF1DWXRqgorJj26U',width:'100%',height:380},(ctrl)=>{
         rockCtrl=ctrl;
-        if(wantPlay){ try{ctrl.play();}catch(e){} }
+        if(wantRockHandoff){ try{ctrl.play();}catch(e){} }
       });
     }
   };
   function enterSite(){
     wantPlay=true;
-    if(rockCtrl){ try{rockCtrl.play();}catch(e){} }
+    startAside();
     const o=document.getElementById('intro');
     if(o){ o.classList.add('gone'); setTimeout(()=>{ if(o&&o.parentNode) o.parentNode.removeChild(o); },900); }
   }
