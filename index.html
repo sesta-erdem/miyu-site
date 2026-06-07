@@ -756,7 +756,7 @@
     <p>Kırmızı pikabın yanı Miyu'nun değişmez tahtı. İğne plağa düştüğünde gözlerini kapatır, kürkü ritimle inip kalkar. Bu gece döner tablada: Ay'a sevgisini emanet eden bir şarkı — tıpkı Miyu'nun 🌝 altın gözleri gibi.</p>
     <div class="np">
       <div class="np-label mono">A-Side · Yıldızın parçası</div>
-      <div id="aside-player"></div>
+      <div id="aside-player-shell"><div id="aside-player"></div></div>
       <div class="np-hint mono">ilk çalar · bitince Rock Classics devralır</div>
     </div>
   </div>
@@ -793,7 +793,9 @@
   <div class="lists reveal">
     <div class="np">
       <div class="np-label mono">Menajerin Listesi · Rock Classics</div>
-      <div id="rock-player"></div>
+      <div id="rock-player-shell">
+        <iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DWXRqgorJj26U?utm_source=generator&theme=0" width="100%" height="380" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Rock Classics"></iframe>
+      </div>
       <div class="np-hint mono">A-Side bittiğinde otomatik devralır · durdurmak senin elinde</div>
     </div>
     <div class="np">
@@ -874,28 +876,56 @@
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
   // --- intro splash; on enter, start with A-side and hand off to Rock Classics ---
-  let miyuCtrl=null, rockCtrl=null, wantPlay=false, wantRockHandoff=false, handoffDone=false;
+  const A_SIDE_URI='spotify:track:3vkCueOmm7xQDoJ17W1Pm3';
+  const ROCK_URI='spotify:playlist:37i9dQZF1DWXRqgorJj26U';
+  const A_SIDE_FALLBACK_MS=145000;
+  let miyuCtrl=null, wantPlay=false, handoffDone=false, handoffTimer=null;
   let asideState={started:false, position:0, duration:0};
+  function clearHandoffTimer(){
+    if(handoffTimer){
+      clearTimeout(handoffTimer);
+      handoffTimer=null;
+    }
+  }
+  function scheduleHandoff(position,duration){
+    if(handoffDone || !duration || duration<=0) return;
+    clearHandoffTimer();
+    const remaining=Math.max(0,duration-position);
+    handoffTimer=setTimeout(handoffToRock, remaining+300);
+  }
+  function moveActivePlayerToRock(){
+    const asideShell=document.getElementById('aside-player-shell');
+    const rockShell=document.getElementById('rock-player-shell');
+    const liveIframe=asideShell ? asideShell.querySelector('iframe') : null;
+    if(!asideShell || !rockShell || !liveIframe || rockShell.contains(liveIframe)) return;
+    rockShell.replaceChildren(liveIframe);
+  }
   function startAside(){
     if(miyuCtrl){
+      document.body.dataset.queueState='aside';
+      clearHandoffTimer();
+      handoffTimer=setTimeout(handoffToRock, A_SIDE_FALLBACK_MS);
+      try{miyuCtrl.loadUri(A_SIDE_URI);}catch(e){}
       try{miyuCtrl.play();}catch(e){}
+      try{miyuCtrl.resume();}catch(e){}
     }
   }
   function handoffToRock(){
-    if(handoffDone) return;
+    if(handoffDone || !miyuCtrl) return;
     handoffDone=true;
-    wantRockHandoff=true;
-    if(miyuCtrl){
-      try{miyuCtrl.pause();}catch(e){}
-    }
-    if(rockCtrl){
-      try{rockCtrl.play();}catch(e){}
-    }
+    document.body.dataset.queueState='rock';
+    clearHandoffTimer();
+    moveActivePlayerToRock();
+    try{miyuCtrl.loadUri(ROCK_URI);}catch(e){}
+    setTimeout(()=>{
+      try{miyuCtrl.play();}catch(e){}
+      try{miyuCtrl.resume();}catch(e){}
+    },350);
   }
   window.onSpotifyIframeApiReady=(IFrameAPI)=>{
     const a=document.getElementById('aside-player');
     if(a){
-      IFrameAPI.createController(a,{uri:'spotify:track:3vkCueOmm7xQDoJ17W1Pm3',width:'100%',height:152},(ctrl)=>{
+      IFrameAPI.createController(a,{uri:A_SIDE_URI,width:'100%',height:152},(ctrl)=>{
         miyuCtrl=ctrl;
         ctrl.addListener('playback_started',()=>{
           asideState.started=true;
@@ -909,6 +939,12 @@
           const nearEndNow=duration>0 && position>=Math.max(duration-2500, duration*0.97);
           const nearEndBeforeReset=prevDuration>0 && prevPosition>=Math.max(prevDuration-2500, prevDuration*0.97);
           if(position>0 && !data.isPaused) asideState.started=true;
+          if(!data.isPaused && duration>0){
+            scheduleHandoff(position,duration);
+          }else if(data.isPaused && !nearEndNow){
+            document.body.dataset.queueState='paused';
+            clearHandoffTimer();
+          }
           if(!handoffDone && asideState.started && ((data.isPaused && nearEndNow) || (data.isPaused && position===0 && nearEndBeforeReset))){
             handoffToRock();
           }
@@ -916,13 +952,6 @@
           if(duration>0) asideState.duration=duration;
         });
         if(wantPlay) startAside();
-      });
-    }
-    const r=document.getElementById('rock-player');
-    if(r){
-      IFrameAPI.createController(r,{uri:'spotify:playlist:37i9dQZF1DWXRqgorJj26U',width:'100%',height:380},(ctrl)=>{
-        rockCtrl=ctrl;
-        if(wantRockHandoff){ try{ctrl.play();}catch(e){} }
       });
     }
   };
