@@ -250,6 +250,9 @@
   #intro .tg{font-family:'EB Garamond',serif;font-style:italic;color:var(--cream-dim);font-size:clamp(1rem,2.5vw,1.25rem);margin-top:8px}
   #intro .enter{margin-top:36px;display:inline-flex;align-items:center;gap:12px;font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;color:var(--ink);background:var(--gold);padding:16px 30px;transition:transform .3s}
   #intro:hover .enter{transform:translateY(-2px)}
+  #intro[data-ready="false"]{cursor:progress}
+  #intro[data-ready="false"] .enter{opacity:.55}
+  #intro[data-ready="false"]:hover .enter{transform:none}
   #intro .enter .dot{width:9px;height:9px;border-radius:50%;background:var(--ink);animation:pulse2 1.5s infinite}
   @keyframes pulse2{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:.35}}
   #intro .hint{margin-top:18px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.2em;color:var(--cream-dim);text-transform:uppercase}
@@ -374,12 +377,12 @@
 </head>
 <body>
 <!-- INTRO SPLASH -->
-<div id="intro" onclick="enterSite()">
+<div id="intro" data-ready="false" onclick="enterSite()">
   <div class="in">
     <div class="mk">MI<em>Y</em>U</div>
     <div class="tg">Soul was never like this.</div>
-    <div class="enter"><span class="dot"></span> Müziği başlatmak için dokun</div>
-    <div class="hint">Mitski ile açılış · sonra gitarlı seçki</div>
+    <div class="enter"><span class="dot"></span> Rock Classics yukleniyor</div>
+    <div class="hint">oynatici hazir olunca dokun ve bastan baslat</div>
   </div>
 </div>
 
@@ -753,11 +756,11 @@
   <div class="text reveal">
     <div class="eyebrow mono">Now Spinning · 33⅓</div>
     <h2>33⅓ devirde, <em>her gün</em>.</h2>
-    <p>Kırmızı pikabın yanı Miyu'nun değişmez tahtı. İğne plağa düştüğünde gözlerini kapatır, kürkü ritimle inip kalkar. Açılışta Mitski başlar; sonra akış tek oynatıcı içinde gitarları yükselten bir seçkiye kendiliğinden devam eder.</p>
+    <p>Kırmızı pikabın yanı Miyu'nun değişmez tahtı. İğne plağa düştüğünde gözlerini kapatır, kürkü ritimle inip kalkar. Açılışta doğrudan Rock Classics başlar ve liste ilk parçadan itibaren kendi akışında devam eder.</p>
     <div class="np">
-      <div class="np-label mono">A-Side · Açılış ve devam</div>
+      <div class="np-label mono">A-Side · Rock Classics</div>
       <div id="aside-player"></div>
-      <div class="np-hint mono">Mitski ile başlar · tek oynatıcıda devam eder</div>
+      <div class="np-hint mono">ilk parça: Blitzkrieg Bop · sonra liste devam eder</div>
     </div>
   </div>
   <div class="player reveal">
@@ -788,7 +791,7 @@
   <div class="head reveal">
     <div class="eyebrow mono" style="justify-content:center">Kulis · Menajerin Kulaklığı</div>
     <h2>Yıldız soul söyler, <em>menajer metal dinler</em>.</h2>
-    <p>Sahnede Miyu'nun kadifemsi soul'u var; ama bu evde sözü menajeri (annesi) söyler ve onun kulaklığında gitarlar sonuna kadar açık. Kesintisiz devam için üstte tek bir açılış seçkisi kullanıyoruz; aşağıda ise resmi <em>Rock Classics</em> ve <em>Metal Essentials</em> listeleri ayrıca duruyor.</p>
+    <p>Sahnede Miyu'nun kadifemsi soul'u var; ama bu evde sözü menajeri (annesi) söyler ve onun kulaklığında gitarlar sonuna kadar açık. Bu yüzden açılışta doğrudan resmi <em>Rock Classics</em> başlıyor. Aşağıda aynı resmi liste ve <em>Metal Essentials</em> ayrıca duruyor.</p>
   </div>
   <div class="lists reveal">
     <div class="np">
@@ -873,26 +876,74 @@
   },{threshold:.12});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-  // --- intro splash; on enter, start a single playlist so playback continues natively ---
-  const MAIN_URI='spotify:playlist:3praMF7vWrn2esLaWnxDfJ';
-  let miyuCtrl=null, wantPlay=false;
+  // --- intro splash; on enter, start Rock Classics from the top ---
+  const ROCK_URI='spotify:playlist:37i9dQZF1DWXRqgorJj26U';
+  const ROCK_FIRST_TRACK_URI='spotify:track:3fi31nZ4m3PSLNxygpjQ3Z';
+  let miyuCtrl=null, wantPlay=false, restartPending=false, controllerReady=false;
+  function setIntroReady(ready){
+    const intro=document.getElementById('intro');
+    const enter=intro ? intro.querySelector('.enter') : null;
+    const hint=intro ? intro.querySelector('.hint') : null;
+    if(intro) intro.dataset.ready = ready ? 'true' : 'false';
+    if(enter) enter.innerHTML = ready
+      ? '<span class="dot"></span> Rock Classics\'i calmak icin dokun'
+      : '<span class="dot"></span> Rock Classics yukleniyor';
+    if(hint) hint.textContent = ready
+      ? 'ilk parca Blitzkrieg Bop · sonra liste devam eder'
+      : 'oynatici hazir olunca dokun ve bastan baslat';
+  }
   function startMainPlaylist(){
     if(miyuCtrl){
-      try{miyuCtrl.loadUri(MAIN_URI);}catch(e){}
+      document.body.dataset.playerMode='rock-classics';
+      document.body.dataset.playerState='requested';
+      restartPending=true;
+      try{miyuCtrl.loadUri(ROCK_URI);}catch(e){}
       try{miyuCtrl.play();}catch(e){}
       try{miyuCtrl.resume();}catch(e){}
+      setTimeout(()=>{
+        if(restartPending){
+          try{miyuCtrl.restart();}catch(e){}
+        }
+      },500);
     }
   }
   window.onSpotifyIframeApiReady=(IFrameAPI)=>{
     const a=document.getElementById('aside-player');
     if(a){
-      IFrameAPI.createController(a,{uri:MAIN_URI,width:'100%',height:380},(ctrl)=>{
+      IFrameAPI.createController(a,{uri:ROCK_URI,width:'100%',height:380},(ctrl)=>{
         miyuCtrl=ctrl;
+        controllerReady=true;
+        document.body.dataset.playerReady='controller';
+        setIntroReady(true);
+        ctrl.addListener('ready',()=>{
+          controllerReady=true;
+          document.body.dataset.playerReady='true';
+          setIntroReady(true);
+        });
+        ctrl.addListener('playback_started',(e)=>{
+          const playingURI=e && e.data ? e.data.playingURI : '';
+          document.body.dataset.playingUri=playingURI || '';
+          document.body.dataset.playerState='playing';
+          if(restartPending){
+            restartPending=false;
+            if(playingURI && playingURI !== ROCK_FIRST_TRACK_URI){
+              try{ctrl.restart();}catch(err){}
+            }
+          }
+        });
+        ctrl.addListener('playback_update',(e)=>{
+          const data=e && e.data ? e.data : {};
+          document.body.dataset.playerPaused = data.isPaused ? 'true' : 'false';
+        });
         if(wantPlay) startMainPlaylist();
       });
     }
   };
   function enterSite(){
+    if(!controllerReady){
+      document.body.dataset.playerReady='false';
+      return;
+    }
     wantPlay=true;
     startMainPlaylist();
     const o=document.getElementById('intro');
