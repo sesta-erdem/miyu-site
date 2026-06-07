@@ -221,6 +221,17 @@
   .np-label::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 0 rgba(230,169,44,.6);animation:pulse 2s infinite}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(230,169,44,.5)}70%{box-shadow:0 0 0 9px rgba(230,169,44,0)}100%{box-shadow:0 0 0 0 rgba(230,169,44,0)}}
   .np iframe{border-radius:12px;display:block;width:100%}
+  .rock-continue{
+    margin:0 0 14px;
+    border:1px solid rgba(230,169,44,.45);
+    background:rgba(230,169,44,.1);
+    color:var(--cream);
+    padding:12px 16px;
+    width:100%;
+    text-align:center;
+    cursor:pointer;
+  }
+  .rock-continue:hover{background:rgba(230,169,44,.18)}
   /* B-side live performance */
   .live{border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:6vw;align-items:center}
   .live .live-photo{position:relative;overflow:hidden;border:1px solid var(--line)}
@@ -793,6 +804,7 @@
   <div class="lists reveal">
     <div class="np">
       <div class="np-label mono">Menajerin Listesi · Rock Classics</div>
+      <button id="rock-continue" class="rock-continue mono" type="button" hidden>Rock Classics baslamadiysa buraya dokun</button>
       <div id="rock-player-shell">
         <iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DWXRqgorJj26U?utm_source=generator&theme=0" width="100%" height="380" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Rock Classics"></iframe>
       </div>
@@ -879,8 +891,20 @@
   const A_SIDE_URI='spotify:track:3vkCueOmm7xQDoJ17W1Pm3';
   const ROCK_URI='spotify:playlist:37i9dQZF1DWXRqgorJj26U';
   const A_SIDE_FALLBACK_MS=145000;
-  let miyuCtrl=null, wantPlay=false, handoffDone=false, handoffTimer=null;
+  let miyuCtrl=null, wantPlay=false, handoffDone=false, handoffTimer=null, rockPromptTimer=null;
   let asideState={started:false, position:0, duration:0};
+  function hideRockPrompt(){
+    const btn=document.getElementById('rock-continue');
+    if(btn) btn.hidden=true;
+    if(rockPromptTimer){
+      clearTimeout(rockPromptTimer);
+      rockPromptTimer=null;
+    }
+  }
+  function showRockPrompt(){
+    const btn=document.getElementById('rock-continue');
+    if(btn && document.body.dataset.queueState!=='rock-playing') btn.hidden=false;
+  }
   function clearHandoffTimer(){
     if(handoffTimer){
       clearTimeout(handoffTimer);
@@ -903,6 +927,7 @@
   function startAside(){
     if(miyuCtrl){
       document.body.dataset.queueState='aside';
+      hideRockPrompt();
       clearHandoffTimer();
       handoffTimer=setTimeout(handoffToRock, A_SIDE_FALLBACK_MS);
       try{miyuCtrl.loadUri(A_SIDE_URI);}catch(e){}
@@ -913,10 +938,11 @@
   function handoffToRock(){
     if(handoffDone || !miyuCtrl) return;
     handoffDone=true;
-    document.body.dataset.queueState='rock';
+    document.body.dataset.queueState='rock-requested';
     clearHandoffTimer();
     moveActivePlayerToRock();
     try{miyuCtrl.loadUri(ROCK_URI);}catch(e){}
+    rockPromptTimer=setTimeout(showRockPrompt, 2200);
     setTimeout(()=>{
       try{miyuCtrl.play();}catch(e){}
       try{miyuCtrl.resume();}catch(e){}
@@ -928,7 +954,13 @@
       IFrameAPI.createController(a,{uri:A_SIDE_URI,width:'100%',height:152},(ctrl)=>{
         miyuCtrl=ctrl;
         ctrl.addListener('playback_started',()=>{
-          asideState.started=true;
+          if(handoffDone){
+            document.body.dataset.queueState='rock-playing';
+            hideRockPrompt();
+          }else{
+            asideState.started=true;
+            document.body.dataset.queueState='aside-playing';
+          }
         });
         ctrl.addListener('playback_update',(e)=>{
           const data=e&&e.data?e.data:{};
@@ -961,6 +993,19 @@
     const o=document.getElementById('intro');
     if(o){ o.classList.add('gone'); setTimeout(()=>{ if(o&&o.parentNode) o.parentNode.removeChild(o); },900); }
   }
+  document.getElementById('rock-continue')?.addEventListener('click',()=>{
+    if(!handoffDone) handoffToRock();
+    document.body.dataset.queueState='rock-requested';
+    hideRockPrompt();
+    if(miyuCtrl){
+      moveActivePlayerToRock();
+      try{miyuCtrl.loadUri(ROCK_URI);}catch(e){}
+      setTimeout(()=>{
+        try{miyuCtrl.play();}catch(e){}
+        try{miyuCtrl.resume();}catch(e){}
+      },120);
+    }
+  });
 </script>
 <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
 </body>
